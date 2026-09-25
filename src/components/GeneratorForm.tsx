@@ -20,6 +20,10 @@ import {
   PEDAGOGICAL_METHODS,
 } from '../data/curriculumData';
 import { QMJPlan, QMJGenerateRequest } from '../types/qmj';
+import {
+  generateSmartQMJPlan,
+  suggestObjectivesSmart,
+} from '../utils/qmjFallbackGenerator';
 
 interface GeneratorFormProps {
   onPlanGenerated: (plan: QMJPlan) => void;
@@ -93,7 +97,7 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({
     }
   };
 
-  // AI suggest objectives via API
+  // AI suggest objectives via API with instant local fallback
   const handleFetchSuggestedObjectives = async () => {
     if (!subject) return;
     setIsSuggesting(true);
@@ -108,15 +112,22 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({
           topic: lessonTopic,
         }),
       });
-      const data = await res.json();
-      if (data.suggestions && Array.isArray(data.suggestions)) {
-        setSuggestedObjectives(data.suggestions);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          setSuggestedObjectives(data.suggestions);
+          setIsSuggesting(false);
+          return;
+        }
       }
     } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSuggesting(false);
+      console.warn('API objectives suggestion failed, using smart curriculum fallback:', e);
     }
+    // Fallback to rich subject-specific objectives
+    const fallbackList = suggestObjectivesSmart(subject, grade, lessonTopic);
+    setSuggestedObjectives(fallbackList);
+    setIsSuggesting(false);
   };
 
   // Submit generate
@@ -149,6 +160,8 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({
       extraPrompt,
     };
 
+    let plan: QMJPlan | null = null;
+
     try {
       const response = await fetch('/api/generate-qmj', {
         method: 'POST',
@@ -156,28 +169,29 @@ export const GeneratorForm: React.FC<GeneratorFormProps> = ({
         body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'ҚМЖ генерациялау сәтсіз аяқталды');
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('application/json')) {
+        plan = await response.json();
+      } else {
+        console.warn('API returned non-OK status or non-JSON:', response.status);
       }
-
-      const plan: QMJPlan = await response.json();
-
-      // Ensure fallback properties
-      if (!plan.header.teacherName && teacherName) plan.header.teacherName = teacherName;
-      if (!plan.header.schoolName && schoolName) plan.header.schoolName = schoolName;
-      if (!plan.header.grade) plan.header.grade = `${grade}-сынып`;
-      if (!plan.header.date) plan.header.date = new Date().toISOString().split('T')[0];
-
-      onPlanGenerated(plan);
     } catch (err: any) {
-      console.error('Error generating QMJ:', err);
-      setErrorMessage(
-        err.message || 'ҚМЖ жасау кезінде күтпеген қате болды. Қайта көріңіз.',
-      );
-    } finally {
-      setIsLoading(false);
+      console.warn('Network or API endpoint not reachable, generating via smart engine:', err);
     }
+
+    // If API is unreachable or returned invalid response, use smart client-side pedagogical engine
+    if (!plan || !plan.stages || plan.stages.length === 0) {
+      plan = generateSmartQMJPlan(requestBody);
+    }
+
+    // Ensure fallback properties
+    if (!plan.header.teacherName && teacherName) plan.header.teacherName = teacherName;
+    if (!plan.header.schoolName && schoolName) plan.header.schoolName = schoolName;
+    if (!plan.header.grade) plan.header.grade = `${grade}-сынып`;
+    if (!plan.header.date) plan.header.date = new Date().toISOString().split('T')[0];
+
+    setIsLoading(false);
+    onPlanGenerated(plan);
   };
 
   return (

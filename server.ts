@@ -3,6 +3,7 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
+import { generateSmartQMJPlan } from './src/utils/qmjFallbackGenerator';
 
 dotenv.config();
 
@@ -166,11 +167,16 @@ ${extraPrompt ? `- Қосымша мұғалім тілегі: ${extraPrompt}` :
 
     res.json(planData);
   } catch (error: any) {
-    console.error('Error generating QMJ:', error);
-    res.status(500).json({
-      error: 'ҚМЖ генерациялау кезінде қате орын алды. Қайта көріңіз.',
-      details: error.message,
-    });
+    console.error('Error generating QMJ via AI, providing smart fallback:', error);
+    try {
+      const fallback = generateSmartQMJPlan(req.body);
+      return res.json(fallback);
+    } catch (fallbackErr) {
+      return res.status(500).json({
+        error: 'ҚМЖ жасау кезінде қате орын алды.',
+        details: error.message,
+      });
+    }
   }
 });
 

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { QMJPlan, QMJStageItem } from '../types/qmj';
 import { exportQMJToWord, copyPlanToClipboard } from '../utils/exportWord';
+import { improveSectionSmart } from '../utils/qmjFallbackGenerator';
 
 interface QMJViewProps {
   plan: QMJPlan;
@@ -161,21 +162,38 @@ export const QMJView: React.FC<QMJViewProps> = ({
         currentText = `Барлығы: ${plan.header.lessonObjectives?.allStudents}\nКөпшілігі: ${plan.header.lessonObjectives?.mostStudents}\nКейбірі: ${plan.header.lessonObjectives?.someStudents}`;
       }
 
-      const res = await fetch('/api/improve-section', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sectionType: selectedSectionKey,
-          currentContent: currentText,
-          subject: plan.header.subject,
-          topic: plan.header.lessonTopic,
-          instruction: aiInstruction,
-        }),
-      });
+      let improved = '';
+      try {
+        const res = await fetch('/api/improve-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sectionType: selectedSectionKey,
+            currentContent: currentText,
+            subject: plan.header.subject,
+            topic: plan.header.lessonTopic,
+            instruction: aiInstruction,
+          }),
+        });
 
-      if (!res.ok) throw new Error('Жақсарту барысында қате болды');
-      const data = await res.json();
-      const improved = data.improvedText;
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data.improvedText) improved = data.improvedText;
+        }
+      } catch (netErr) {
+        console.warn('API improve error, falling back to smart local enhancer:', netErr);
+      }
+
+      if (!improved) {
+        improved = improveSectionSmart(
+          selectedSectionKey,
+          currentText,
+          plan.header.subject,
+          plan.header.lessonTopic,
+          aiInstruction
+        );
+      }
 
       if (selectedSectionKey.startsWith('stage-')) {
         const stageId = selectedSectionKey.replace('stage-', '');
