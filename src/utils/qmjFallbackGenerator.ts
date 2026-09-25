@@ -2,6 +2,18 @@ import { QMJPlan, QMJGenerateRequest, QMJStageItem } from '../types/qmj';
 import { KAZAKHSTAN_SUBJECTS } from '../data/curriculumData';
 
 /**
+ * Helper to safely extract single lesson objective as string
+ */
+export function formatSingleLessonObjective(obj: string | any): string {
+  if (!obj) return '';
+  if (typeof obj === 'string') return obj;
+  if (typeof obj === 'object') {
+    return obj.allStudents || obj.mostStudents || obj.someStudents || '';
+  }
+  return String(obj);
+}
+
+/**
  * Intelligent client-side / offline QMJ generator matching official
  * Kazakhstan Ministry of Education standards.
  */
@@ -89,11 +101,7 @@ export function generateSmartQMJPlan(request: QMJGenerateRequest): QMJPlan {
       subject,
       lessonTopic,
       learningObjectives: finalLearningObjectives,
-      lessonObjectives: {
-        allStudents: `«${lessonTopic}» тақырыбы бойынша негізгі ұғымдар мен ережелерді біледі, сипаттай алады.`,
-        mostStudents: `Алған білімдерін қолданып мысалдар келтіреді, тапсырмалар мен жаттығуларды алгоритм бойынша дұрыс орындайды.`,
-        someStudents: `Күрделі деңгейдегі есептер мен шығармашылық тапсырмаларды өз бетінше талдап, дәлелді қорытынды жасайды.`,
-      },
+      lessonObjectives: `«${lessonTopic}» тақырыбы бойынша негізгі ұғымдар мен заңдылықтарды түсіндіру, тәжірибелік тапсырмалар арқылы білімдерін бекіту және оқушылардың функционалдық сауаттылығын дамыту.`,
       valuesOrientation: `«Біртұтас тәрбие» бағдарламасы бойынша: ${valuesTheme}. Оқушыларды адалдыққа, ізденімпаздыққа, жауапкершілікке және өзара сыйластыққа баулу.`,
       lessonType,
       pedagogicalMethods: methodsText,
@@ -130,7 +138,7 @@ export function improveSectionSmart(
     return `Саралаудың жетілдірілген моделі:\n1. Қарқын бойынша: Қарқыны жылдам оқушыларға күрделі логикалық ізденіс тапсырмалары беріледі.\n2. Қорытынды бойынша: Барлық оқушылар бірдей тапсырма орындағанымен, нәтижелерінен күтілетін деңгей түрліше бағаланады.\n3. Диалог және қолдау: Үнемі мұғалімнің жетелеуші көмегі мен ынталандыруы қамтамасыз етіледі.`;
   }
   if (sectionType === 'objectives') {
-    return `Барлық оқушылар үшін: ${topic} тақырыбы бойынша негізгі түсініктерді біледі және талдайды.\nОқушылардың көпшілігі үшін: Тақырыпқа қатысты формулаларды, ережелерді тәжірибеде қатесіз қолданады.\nКейбір оқушылар үшін: Күрделі жағдаяттарда стандарттан тыс тәсілдерді ұсынып, өз пікірін ғылыми негіздейді.`;
+    return `«${topic}» тақырыбы бойынша негізгі ұғымдар мен заңдылықтарды түсіндіру, есептер мен тәжірибелік тапсырмаларды орындау дағдысын қалыптастыру және оқушылардың танымдық белсенділігін дамыту.`;
   }
   return `${currentContent}\n\n[Толықтырылған нұсқа: «${topic}» тақырыбы бойынша оқу-ағарту министрлігінің соңғы әдістемелік нұсқаулықтары ескерілді].`;
 }

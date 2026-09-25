@@ -50,7 +50,7 @@ export default async function handler(req: any, res: any) {
 
 Маңызды талаптар:
 1. Тілі: Таза, академиялық қазақ тілі, педагогикалық терминологиясы сауатты.
-2. «Сабақтың мақсаты» үш деңгейге жіктелуі керек: Барлық оқушылар үшін, Көпшілігі үшін, Кейбір оқушылар үшін.
+2. «Сабақтың мақсаты» – нақты 1 бірыңғай сабақ мақсаты ретінде (үш деңгейге бөлмей, бір мақсат етіп) жазылады.
 3. Сабақтың 3 негізгі кезеңі болуы шарт (Басы, Ортасы, Соңы) дескрипторларымен және ресурстарымен.`;
 
       const userPrompt = `Келесі мәліметтер бойынша ҚМЖ сабақ жоспарын әзірлеңіз:
@@ -93,15 +93,7 @@ ${extraPrompt ? `- Қосымша мұғалім тілегі: ${extraPrompt}` :
                   subject: { type: Type.STRING },
                   lessonTopic: { type: Type.STRING },
                   learningObjectives: { type: Type.STRING },
-                  lessonObjectives: {
-                    type: Type.OBJECT,
-                    properties: {
-                      allStudents: { type: Type.STRING },
-                      mostStudents: { type: Type.STRING },
-                      someStudents: { type: Type.STRING },
-                    },
-                    required: ['allStudents', 'mostStudents', 'someStudents'],
-                  },
+                  lessonObjectives: { type: Type.STRING, description: 'Сабақтың нақты 1 бірыңғай мақсаты' },
                   valuesOrientation: { type: Type.STRING },
                   lessonType: { type: Type.STRING },
                   pedagogicalMethods: { type: Type.STRING },

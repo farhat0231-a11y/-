@@ -49,7 +49,7 @@ app.post('/api/generate-qmj', async (req, res) => {
 
 Маңызды талаптар:
 1. Тілі: Таза, академиялық қазақ тілі, педагогикалық терминологиясы сауатты.
-2. «Сабақтың мақсаты» үш деңгейге жіктелуі керек: Барлық оқушылар үшін, Көпшілігі үшін, Кейбір оқушылар үшін.
+2. «Сабақтың мақсаты» – нақты 1 бірыңғай сабақ мақсаты ретінде (үш деңгейге бөлмей, бір мақсат етіп) жазылады.
 3. Сабақтың 3 негізгі кезеңі болуы шарт:
    - Сабақтың басы (0-10 мин): Ұйымдастыру кезеңі, жағымды психологиялық ахуал (нақты әдісімен), қызығушылықты ояту/өткенді қайталау, оқу мақсатын таныстыру.
    - Сабақтың ортасы (10-35 мин): Мағынаны тану (жаңа ақпарат), топтық/жұптық тапсырма, жеке сараланған тапсырма (А, В, С деңгейлері), сергіту сәті, функционалдық тапсырма. Әр тапсырмаға нақты балдық жүйесі бар ДЕСКРИПТОР (1-10 балл) және формативті бағалау тәсілі («Бас бармақ», «Бағдаршам», «2 жұлдыз, 1 тілек» т.б.) жазылады.
@@ -97,15 +97,7 @@ ${extraPrompt ? `- Қосымша мұғалім тілегі: ${extraPrompt}` :
                 subject: { type: Type.STRING },
                 lessonTopic: { type: Type.STRING },
                 learningObjectives: { type: Type.STRING },
-                lessonObjectives: {
-                  type: Type.OBJECT,
-                  properties: {
-                    allStudents: { type: Type.STRING },
-                    mostStudents: { type: Type.STRING },
-                    someStudents: { type: Type.STRING },
-                  },
-                  required: ['allStudents', 'mostStudents', 'someStudents'],
-                },
+                lessonObjectives: { type: Type.STRING, description: 'Сабақтың нақты 1 бірыңғай мақсаты' },
                 valuesOrientation: { type: Type.STRING },
                 lessonType: { type: Type.STRING },
                 pedagogicalMethods: { type: Type.STRING },

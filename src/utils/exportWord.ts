@@ -1,4 +1,5 @@
 import { QMJPlan } from '../types/qmj';
+import { formatSingleLessonObjective } from './qmjFallbackGenerator';
 
 export function exportQMJToWord(plan: QMJPlan) {
   const h = plan.header;
@@ -151,11 +152,7 @@ export function exportQMJToWord(plan: QMJPlan) {
       </tr>
       <tr>
         <td class="info-label">Сабақтың мақсаты:</td>
-        <td>
-          <p style="margin: 0 0 3pt 0;"><b>Барлық оқушылар үшін:</b> ${h.lessonObjectives?.allStudents || '—'}</p>
-          <p style="margin: 0 0 3pt 0;"><b>Көпшілігі үшін:</b> ${h.lessonObjectives?.mostStudents || '—'}</p>
-          <p style="margin: 0;"><b>Кейбір оқушылар үшін:</b> ${h.lessonObjectives?.someStudents || '—'}</p>
-        </td>
+        <td>${formatSingleLessonObjective(h.lessonObjectives) || '—'}</td>
       </tr>
       <tr>
         <td class="info-label">Құндылықтарға баулу:</td>
@@ -274,7 +271,7 @@ export function copyPlanToClipboard(plan: QMJPlan): Promise<void> {
   text += `Сабақтың тақырыбы: ${h.lessonTopic}\n`;
   text += `Бөлім: ${h.section}\n`;
   text += `Оқу мақсаты: ${h.learningObjectives}\n`;
-  text += `Сабақтың мақсаты:\n  - Барлық оқушылар: ${h.lessonObjectives?.allStudents}\n  - Көпшілігі: ${h.lessonObjectives?.mostStudents}\n  - Кейбір оқушылар: ${h.lessonObjectives?.someStudents}\n`;
+  text += `Сабақтың мақсаты: ${formatSingleLessonObjective(h.lessonObjectives)}\n`;
   text += `Құндылықтар: ${h.valuesOrientation}\n`;
   text += `Сабақ түрі: ${h.lessonType} | Әдіс-тәсілдері: ${h.pedagogicalMethods}\n\n`;
 

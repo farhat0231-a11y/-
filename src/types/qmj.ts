@@ -1,7 +1,7 @@
 export interface QMJLessonObjectives {
-  allStudents: string;
-  mostStudents: string;
-  someStudents: string;
+  allStudents?: string;
+  mostStudents?: string;
+  someStudents?: string;
 }
 
 export interface QMJHeader {
@@ -15,7 +15,7 @@ export interface QMJHeader {
   subject: string; // Пән
   lessonTopic: string; // Сабақтың тақырыбы
   learningObjectives: string; // Оқу бағдарламасына сәйкес оқыту мақсаттары (мысалы: 7.1.2.1)
-  lessonObjectives: QMJLessonObjectives; // Сабақтың мақсаты
+  lessonObjectives: string | QMJLessonObjectives; // Сабақтың мақсаты (1 мақсат)
   valuesOrientation: string; // Құндылықтарға баулу («Біртұтас тәрбие»)
   lessonType: string; // Сабақтың түрі (Жаңа сабақ, т.б.)
   pedagogicalMethods: string; // Әдіс-тәсілдер

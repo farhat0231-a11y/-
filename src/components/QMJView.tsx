@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { QMJPlan, QMJStageItem } from '../types/qmj';
 import { exportQMJToWord, copyPlanToClipboard } from '../utils/exportWord';
-import { improveSectionSmart } from '../utils/qmjFallbackGenerator';
+import { improveSectionSmart, formatSingleLessonObjective } from '../utils/qmjFallbackGenerator';
 
 interface QMJViewProps {
   plan: QMJPlan;
@@ -79,16 +79,13 @@ export const QMJView: React.FC<QMJViewProps> = ({
     });
   };
 
-  // Objectives change
-  const handleObjectiveChange = (level: 'allStudents' | 'mostStudents' | 'someStudents', value: string) => {
+  // Single objective change
+  const handleSingleObjectiveChange = (value: string) => {
     onUpdatePlan({
       ...plan,
       header: {
         ...plan.header,
-        lessonObjectives: {
-          ...plan.header.lessonObjectives,
-          [level]: value,
-        },
+        lessonObjectives: value,
       },
     });
   };
@@ -159,7 +156,7 @@ export const QMJView: React.FC<QMJViewProps> = ({
       } else if (selectedSectionKey === 'differentiation') {
         currentText = plan.conclusion.differentiation;
       } else if (selectedSectionKey === 'objectives') {
-        currentText = `Барлығы: ${plan.header.lessonObjectives?.allStudents}\nКөпшілігі: ${plan.header.lessonObjectives?.mostStudents}\nКейбірі: ${plan.header.lessonObjectives?.someStudents}`;
+        currentText = formatSingleLessonObjective(plan.header.lessonObjectives);
       }
 
       let improved = '';
@@ -215,6 +212,14 @@ export const QMJView: React.FC<QMJViewProps> = ({
           conclusion: {
             ...plan.conclusion,
             differentiation: improved,
+          },
+        });
+      } else if (selectedSectionKey === 'objectives') {
+        onUpdatePlan({
+          ...plan,
+          header: {
+            ...plan.header,
+            lessonObjectives: improved,
           },
         });
       }
@@ -477,58 +482,34 @@ export const QMJView: React.FC<QMJViewProps> = ({
               <tr>
                 <td className="border border-black p-2 font-bold bg-slate-50">Сабақтың мақсаты:</td>
                 <td className="border border-black p-2" colSpan={3}>
-                  <div className="space-y-1.5">
-                    <div>
-                      <span className="font-bold text-xs uppercase text-slate-700">
-                        Барлық оқушылар үшін:
-                      </span>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={h.lessonObjectives?.allStudents || ''}
-                          onChange={(e) => handleObjectiveChange('allStudents', e.target.value)}
-                          className="w-full border border-slate-300 p-1 rounded text-xs mt-0.5"
-                        />
-                      ) : (
-                        <p className="text-xs sm:text-sm pl-2">
-                          {h.lessonObjectives?.allStudents || '—'}
+                  <div className="relative group">
+                    {isEditing ? (
+                      <textarea
+                        rows={2}
+                        value={formatSingleLessonObjective(h.lessonObjectives)}
+                        onChange={(e) => handleSingleObjectiveChange(e.target.value)}
+                        className="w-full border border-slate-300 p-1.5 rounded text-xs sm:text-sm font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Сабақтың нақты 1 мақсатын жазыңыз..."
+                      />
+                    ) : (
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-xs sm:text-sm leading-relaxed text-slate-900">
+                          {formatSingleLessonObjective(h.lessonObjectives) || '—'}
                         </p>
-                      )}
-                    </div>
-                    <div>
-                      <span className="font-bold text-xs uppercase text-slate-700">
-                        Көпшілігі үшін:
-                      </span>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={h.lessonObjectives?.mostStudents || ''}
-                          onChange={(e) => handleObjectiveChange('mostStudents', e.target.value)}
-                          className="w-full border border-slate-300 p-1 rounded text-xs mt-0.5"
-                        />
-                      ) : (
-                        <p className="text-xs sm:text-sm pl-2">
-                          {h.lessonObjectives?.mostStudents || '—'}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <span className="font-bold text-xs uppercase text-slate-700">
-                        Кейбір оқушылар үшін:
-                      </span>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={h.lessonObjectives?.someStudents || ''}
-                          onChange={(e) => handleObjectiveChange('someStudents', e.target.value)}
-                          className="w-full border border-slate-300 p-1 rounded text-xs mt-0.5"
-                        />
-                      ) : (
-                        <p className="text-xs sm:text-sm pl-2">
-                          {h.lessonObjectives?.someStudents || '—'}
-                        </p>
-                      )}
-                    </div>
+                        <button
+                          onClick={() =>
+                            openAiImprove(
+                              'objectives',
+                              'Сабақтың мақсатын ҚР МЖМБС стандартына сай нақты 1 өлшенетін мақсат етіп жетілдіріп беріңіз.'
+                            )
+                          }
+                          title="Мақсатты жақсарту"
+                          className="no-print opacity-0 group-hover:opacity-100 transition-opacity p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Wand2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
