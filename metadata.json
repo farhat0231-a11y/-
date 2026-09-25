@@ -1,0 +1,6 @@
+{
+  "name": "ҚМЖ Генераторы - Ұстаздар көмекшісі",
+  "description": "Қазақстан мектептеріне арналған қысқа мерзімді сабақ жоспарын (ҚМЖ) жасайтын, өңдейтін және басып шығаратын интеллектуалды қосымша",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
